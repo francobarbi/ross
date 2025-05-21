@@ -8,6 +8,7 @@ import multiprocessing
 from ross import SealElement
 from ross.units import check_units
 import multiprocessing
+#from CoolProp.CoolProp import AbstractState
 
 
 class LabyrinthSeal(SealElement):
@@ -126,13 +127,24 @@ class LabyrinthSeal(SealElement):
         self.gas_composition = gas_composition
         self.tz = [0] * 2
         self.muz = [0] * 2
+
+        # components = list(gas_composition.keys())
+        # fractions = list(gas_composition.values())
+        # state_in = AbstractState("PR", '&'.join(components))
+        # state_in.set_mole_fractions(fractions)
+        # state.build_phase_envelope("dummy")
         
-        state_in = ccp.State.define(
-            p=inlet_pressure, T=inlet_temperature, fluid=self.gas_composition
+        state_in = ccp.State(
+            p=inlet_pressure, T=inlet_temperature, fluid=self.gas_composition, EOS="HEOS"
         )
-        state_out = ccp.State.define(
-            p=outlet_pressure, h=state_in.h(), fluid=self.gas_composition
+
+        h_in=state_in.h()
+
+        state_out = ccp.State(
+            p=outlet_pressure, h=h_in, fluid=self.gas_composition, EOS="HEOS",phase="gas"
         )
+
+        state_out.build_phase_envelope("dummy")
 
         # Calculate
         # gas constant : float -> Gas constant (J / kg degK
